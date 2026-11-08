@@ -1,0 +1,10 @@
+# Usage:
+#   source set-env
+#
+
+# auto-export all variables
+set -a
+. ./.env.properties
+set +a
+
+echo "✅ Environment loaded."

@@ -1,0 +1,35 @@
+spring:
+  profiles:
+    default: local
+  config:
+    import: optional:file:.env.properties
+  application:
+    name: poc-party-gpm-ai
+  docker:
+    compose:
+      enabled: true # Enable, if you want Spring to start docker compose automatically
+
+gpm:
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      schema: ${POSTGRES_GPM_SCHEMA}
+      connection-timeout: 30000 # Connection timeout - 30 seconds
+      idle-timeout: 600000 # Idle timeout - 10 minutes (in milliseconds)
+      max-lifetime: 1200000 # Max lifetime - 20 minutes (in milliseconds)
+      minimum-idle: 1 # Minimum number of idle connections maintained in the pool
+
+  flyway:
+    enabled: true
+    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+    user: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    schemas: ${gpm.datasource.hikari.schema}
+    create-schemas: true
+    locations: ${FLYWAY_LOCATIONS}
+    failOnMissingLocations: true
+    placeholders:
+      gpm_schema: ${gpm.datasource.hikari.schema}
