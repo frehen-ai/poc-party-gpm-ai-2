@@ -16,8 +16,9 @@ docker compose down                                                    # stop
 ```
 source ./set-env
 (./gradlew bootRun > /tmp/bootrun.log 2>&1 &)
-until [ "$(curl -s -o /dev/null -w '%{http_code}' localhost:8080)" = 404 ]; do sleep 2; done   # ~10 s; cap at ~3 min
-kill $(lsof -ti tcp:8080 -sTCP:LISTEN); sleep 5                                               # stop
+ready=; for i in $(seq 90); do [ "$(curl -s -o /dev/null -w '%{http_code}' localhost:8080)" = 404 ] && ready=1 && break; sleep 2; done
+[ -n "$ready" ] || { echo "NOT READY"; tail -50 /tmp/bootrun.log; }   # usually ready in ~10 s; gives up after 3 min
+kill $(lsof -ti tcp:8080 -sTCP:LISTEN); sleep 5                         # stop
 ```
 - Starts the DB itself via docker compose if not running, and stops it again on shutdown.
 - No HTTP endpoints exist, so `404` means ready (also log line `Started PocPartyGpmApplicationKt`).
@@ -25,4 +26,4 @@ kill $(lsof -ti tcp:8080 -sTCP:LISTEN); sleep 5                                 
 
 ## Tests
 `./gradlew clean test` (Testcontainers, no `set-env` or running DB needed).
-Results: one XML per test class in `build/test-results/test/`; sum the `tests`/`failures`/`errors` attributes.
+`BUILD SUCCESSFUL` means all tests passed. Details for failures: `build/test-results/test/*.xml`.
