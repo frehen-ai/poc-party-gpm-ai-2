@@ -22,10 +22,13 @@ No `set-env` needed.
 (./gradlew bootRun > /tmp/bootrun.log 2>&1 &)
 ready=; for i in $(seq 90); do [ "$(curl -s -o /dev/null -w '%{http_code}' localhost:8080)" = 404 ] && ready=1 && break; sleep 2; done
 [ -n "$ready" ] || { echo "NOT READY"; tail -50 /tmp/bootrun.log; }   # usually ready in ~10 s; gives up after 3 min
-kill $(lsof -ti tcp:8080 -sTCP:LISTEN); sleep 5                         # stop
+pid=$(lsof -ti tcp:8080 -sTCP:LISTEN); kill $pid                        # stop
+while kill -0 $pid 2>/dev/null; do sleep 1; done                        # wait until Spring has stopped the DB
+docker compose --env-file .env.properties down                          # remove the stopped DB container
+docker ps -a --filter label=com.docker.compose.project=poc-party-gpm-ai-2 -q   # expect no output
 ```
 - Starts the DB itself via docker compose if not running, and stops (not removes) it on shutdown.
-  Clean up with `docker compose --env-file .env.properties down`.
+- If the DB from the Flyway section is still running, the app reuses it and leaves it running.
 - No HTTP endpoints exist, so `404` means ready (also log line `Started PocPartyGpmApplicationKt`).
 - After `kill`, Gradle reports `BUILD FAILED`; that is expected.
 
