@@ -5,21 +5,21 @@ constraints, record history and state events.
 
 ## Database server setup
 
-The database setup variables are located in [.env.properties](.env.properties), which is automatically read by 
+Environment variables for local database setup are located in [.env.properties](.env.properties) and is automatically read by 
 the Spring configuration. It contains only dummy values for local development and is checked in.
+
+The `.env` file is reserved for private secrets (e.g. `GH_TOKEN`). It is git-ignored and must never be committed.
+Since Docker Compose reads `.env` by default, it is always pointed at `.env.properties` instead:
+
+- Spring passes `--env-file=.env.properties` to Docker Compose (`spring.docker.compose.arguments` in
+  [application.yaml](src/main/resources/application.yaml)).
+- On the command line, `source set-env` exports the variables, which take precedence over `.env`.
 
 The environment variables define the following user:
 
 - `$POSTGRES_USER`: admin user for the Postgres database server and for the GPM service
 
 There is currently no separate user for the GPM Service.
-
-`.env` is reserved for private secrets (e.g. `GH_TOKEN`). It is git-ignored and must never be committed.
-Since Docker Compose reads `.env` by default, it is always pointed at `.env.properties` instead:
-
-- Spring passes `--env-file=.env.properties` to Docker Compose (`spring.docker.compose.arguments` in 
-  [application.yaml](src/main/resources/application.yaml)).
-- On the command line, `source set-env` exports the variables, which take precedence over `.env`.
 
 To start and stop the database via docker compose: 
 
