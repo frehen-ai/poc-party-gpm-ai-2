@@ -21,11 +21,14 @@ No `set-env` needed.
 ```
 (./gradlew bootRun > /tmp/bootrun.log 2>&1 &)
 ready=; for i in $(seq 90); do [ "$(curl -s -o /dev/null -w '%{http_code}' localhost:8080)" = 404 ] && ready=1 && break; sleep 2; done
-[ -n "$ready" ] || { echo "NOT READY"; tail -50 /tmp/bootrun.log; }   # usually ready in ~10 s; gives up after 3 min
-pid=$(lsof -ti tcp:8080 -sTCP:LISTEN); kill $pid                        # stop
-while kill -0 $pid 2>/dev/null; do sleep 1; done                        # wait until Spring has stopped the DB
-docker compose --env-file .env.properties down                          # remove the stopped DB container
-docker compose --env-file .env.properties ps -a -q                      # expect no output
+if [ -z "$ready" ]; then                                                # usually ready in ~10 s; gives up after 3 min
+  echo "NOT READY"; tail -50 /tmp/bootrun.log                           # stop here and fix the cause from the log
+else
+  pid=$(lsof -ti tcp:8080 -sTCP:LISTEN); kill $pid                      # stop
+  while kill -0 $pid 2>/dev/null; do sleep 1; done                      # wait until Spring has stopped the DB
+  docker compose --env-file .env.properties down                        # remove the stopped DB container
+  docker compose --env-file .env.properties ps -a -q                    # expect no output
+fi
 ```
 - Starts the DB itself via docker compose if not running, and stops (not removes) it on shutdown.
 - If the DB from the Flyway section is still running, the app reuses it and leaves it running.
