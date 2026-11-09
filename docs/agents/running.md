@@ -25,7 +25,7 @@ ready=; for i in $(seq 90); do [ "$(curl -s -o /dev/null -w '%{http_code}' local
 pid=$(lsof -ti tcp:8080 -sTCP:LISTEN); kill $pid                        # stop
 while kill -0 $pid 2>/dev/null; do sleep 1; done                        # wait until Spring has stopped the DB
 docker compose --env-file .env.properties down                          # remove the stopped DB container
-docker ps -a --filter label=com.docker.compose.project=poc-party-gpm-ai-2 -q   # expect no output
+docker compose --env-file .env.properties ps -a -q                      # expect no output
 ```
 - Starts the DB itself via docker compose if not running, and stops (not removes) it on shutdown.
 - If the DB from the Flyway section is still running, the app reuses it and leaves it running.
