@@ -8,6 +8,8 @@ spring:
   docker:
     compose:
       enabled: true # Enable, if you want Spring to start docker compose automatically
+      arguments:
+        - "--env-file=.env.properties" # .env is reserved for private secrets
 
 gpm:
   datasource:

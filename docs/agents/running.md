@@ -1,7 +1,10 @@
 # Running the project (agent notes)
 
 Supplements `README.md`. Prereqs: Docker running, Java 25, `flyway` and `psql` CLIs on PATH.
-Run all commands from the project root. Each shell call needs `source ./set-env` first (except tests).
+Run all commands from the project root.
+
+Settings live in `.env.properties`. `.env` (if present) holds private secrets: never read, print, or commit it.
+Plain `docker compose` reads `.env`, so always `source ./set-env` first or pass `--env-file .env.properties`.
 
 ## Database + Flyway
 ```
@@ -13,8 +16,8 @@ docker compose down                                                    # stop
 ```
 
 ## Application
+No `set-env` needed.
 ```
-source ./set-env
 (./gradlew bootRun > /tmp/bootrun.log 2>&1 &)
 ready=; for i in $(seq 90); do [ "$(curl -s -o /dev/null -w '%{http_code}' localhost:8080)" = 404 ] && ready=1 && break; sleep 2; done
 [ -n "$ready" ] || { echo "NOT READY"; tail -50 /tmp/bootrun.log; }   # usually ready in ~10 s; gives up after 3 min

@@ -1,4 +1,5 @@
-# Run `source set-env` in project directory before running `docker compose up -d
+# Run `source set-env` in project directory before running `docker compose up -d`
+# (or use `docker compose --env-file .env.properties up -d`). Do not rely on .env: it is reserved for private secrets.
 services:
   db:
     image: postgres:15.3

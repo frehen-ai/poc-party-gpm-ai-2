@@ -6,7 +6,7 @@ constraints, record history and state events.
 ## Database server setup
 
 The database setup variables are located in [.env.properties](.env.properties), which is automatically read by 
-the Spring configuration. 
+the Spring configuration. It contains only dummy values for local development and is checked in.
 
 The environment variables define the following user:
 
@@ -14,16 +14,17 @@ The environment variables define the following user:
 
 There is currently no separate user for the GPM Service.
 
-To make Docker read the same properties automatically, [.env](.env) is symlinked to [.env.properties](.env.properties). This 
-can be setup as follows:
+`.env` is reserved for private secrets (e.g. `GH_TOKEN`). It is git-ignored and must never be committed.
+Since Docker Compose reads `.env` by default, it is always pointed at `.env.properties` instead:
 
-```
-ln -s .env.properties .env
-```
+- Spring passes `--env-file=.env.properties` to Docker Compose (`spring.docker.compose.arguments` in 
+  [application.yaml](src/main/resources/application.yaml)).
+- On the command line, `source set-env` exports the variables, which take precedence over `.env`.
 
 To start and stop the database via docker compose: 
 
 ```
+source set-env
 docker compose up -d && docker compose ps
 docker compose down
 ```
@@ -49,13 +50,15 @@ flyway clean migrate
 To start the application:
 
 ```
-source ./set-env
 ./gradlew bootRun
 ```
 
+No `source ./set-env` needed: Spring reads `.env.properties` itself and passes it to Docker Compose.
+
 `spring-boot-docker-compose` is on the `dev` classpath. With property `spring.docker.compose.enabled: true`
-and no DB running, Spring creates and starts the `compose.yaml` postgres, waits for health, then Flyway migrates schema 
-`gpm`. With DB already running (`docker compose up -d`), Spring detects it and skips startup.
+and no DB running, Spring creates and starts the `compose.yaml` postgres, waits until it accepts connections, then 
+Flyway migrates schema `gpm`. On shutdown Spring stops the container again. With DB already running 
+(`docker compose up -d`), Spring detects it and leaves it alone.
 
 Serves on the default spring server port, **http://localhost:8080**.
 
