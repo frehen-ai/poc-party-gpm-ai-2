@@ -5,6 +5,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class RefStatusRepository {
@@ -24,5 +25,16 @@ public class RefStatusRepository {
                 """)
             .query(RefStatus.class)
             .list();
+    }
+
+    public Optional<RefStatus> findByCode(String code) {
+        return jdbcClient.sql("""
+                select code, name, gk_code, gk_name, valid_for_person, valid_for_organisation, valid_for_multi_customer
+                from ref_status
+                where code = ?
+                """)
+            .param(code)
+            .query(RefStatus.class)
+            .optional();
     }
 }

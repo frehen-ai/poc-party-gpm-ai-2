@@ -56,6 +56,22 @@ class RefStatusRepositoryTest {
         assertThat(refStatusRepository.findValidForPerson()).isEmpty();
     }
 
+    @Test
+    void finds_status_by_known_code() {
+        insert(new RefStatus("A", "Status A", "A", "Group A", true, true, false));
+        insert(new RefStatus("B", "Status B", "B", "Group B", false, true, true));
+
+        assertThat(refStatusRepository.findByCode("B"))
+                .contains(new RefStatus("B", "Status B", "B", "Group B", false, true, true));
+    }
+
+    @Test
+    void returns_empty_for_unknown_code() {
+        insert(new RefStatus("A", "Status A", "A", "Group A", true, true, false));
+
+        assertThat(refStatusRepository.findByCode("UNKNOWN")).isEmpty();
+    }
+
     private void insert(RefStatus status) {
         jdbcClient.sql("""
                         insert into ref_status
